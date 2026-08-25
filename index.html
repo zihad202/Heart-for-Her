@@ -2,27 +2,29 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eva Moni Heart - Centered</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eva Moni Heart</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
             background-color: rgb(5, 5, 5);
             display: flex;
-            justify-content: center; /* হরাইজন্টালি মাঝখানে */
-            align-items: center;    /* ভার্টিক্যালি মাঝখানে */
-            height: 100vh;           /* পুরো স্ক্রিন জুড় */
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
         }
         canvas {
             display: block;
-            /* মোবাইল ও ডেস্কটপে ক্যানভাস যাতে ছোট না হয় বা এক কোণায় না যায় */
-            max-width: 100%;
-            max-height: 100%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* একদম স্ক্রিনের সেন্টারে রাখবে */
         }
     </style>
 </head>
@@ -34,12 +36,7 @@
         const canvas = document.getElementById("heartCanvas");
         const ctx = canvas.getContext("2d");
 
-        // ক্যানভাস সাইজ সবসময় স্ক্রিনের উপর নির্ভর করবে
-        const W = Math.min(window.innerWidth, 800); // 800px অথবা স্ক্রিনের সাইজ, যেটি ছোট
-        const H = Math.min(window.innerHeight, 800);
-        canvas.width = W;
-        canvas.height = H;
-
+        let W, H, scale;
         const TEXT = "Eva Moni";
         const PINK = "255, 77, 109";
         let points = [];
@@ -55,13 +52,25 @@
             };
         }
 
+        // স্ক্রিনের সাইজ অনুযায়ী ক্যানভাস অ্যাডজাস্ট করার ফাংশন
+        function resizeCanvas() {
+            // মোবাইল স্ক্রিনের ফুল উইডথ ও হাইট নেওয়া
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W;
+            canvas.height = H;
+
+            // মোবাইলের স্ক্রিন অনুযায়ী হার্টের সাইজ স্কেলিং
+            const minDim = Math.min(W, H);
+            scale = minDim / 42; 
+
+            init();
+        }
+
         function createHeartPoints() {
             let pts = [];
             const cx = W / 2;
             const cy = H / 2;
-            
-            // মোবাইল স্ক্রিনের জন্য স্কেল অ্যাডজাস্ট করা হয়েছে যাতে হার্ট ফেটে না যায়
-            const scale = Math.min(W, H) / 50; 
 
             // Outer Boundary
             for (let i = 0; i < 180; i++) {
@@ -90,21 +99,25 @@
             startTime = Date.now();
         }
 
-        // Restart on 'R' key press
+        // কীবোর্ড R দিয়ে রিস্টার্ট
         window.addEventListener("keydown", (e) => {
             if (e.key === "r" || e.key === "R") {
                 init();
             }
         });
 
+        // স্ক্রিন রোটেট বা রিসাইজ করলে অটোমেটিক সাইজ ঠিক করা
+        window.addEventListener("resize", resizeCanvas);
+
         function animate() {
             let elapsed = Date.now() - startTime;
 
-            // Clear Background
             ctx.fillStyle = "rgb(5, 5, 5)";
             ctx.fillRect(0, 0, W, H);
 
-            ctx.font = "13px Consolas";
+            // মোবাইল স্ক্রিনে ফন্ট সাইজ অ্যাডজাস্টমেন্ট
+            const fontSize = Math.max(10, Math.floor(Math.min(W, H) / 60));
+            ctx.font = `${fontSize}px Consolas`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
 
@@ -123,7 +136,8 @@
             requestAnimationFrame(animate);
         }
 
-        init();
+        // প্রথমবার রান করা
+        resizeCanvas();
         animate();
     </script>
 </body>
