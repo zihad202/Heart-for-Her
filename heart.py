@@ -11,7 +11,7 @@ pygame.display.set_caption("heart")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Consolas", 13)
 
-TEXT = "LOVE YOU"
+TEXT = "Eva Moni"
 PINK = (255, 77, 109)
 BG = (5, 5, 5)
 
