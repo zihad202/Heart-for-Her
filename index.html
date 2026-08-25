@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eva Moni Heart with Music</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: rgb(5, 5, 5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        /* মিউজিক বাটন স্টাইল */
+        #music-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 77, 109, 0.2);
+            border: 1px solid rgba(255, 77, 109, 0.6);
+            color: #ff4d6d;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        #music-btn:hover {
+            background: rgba(255, 77, 109, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- মিউজিক প্লেয়ার -->
+    <audio id="bgMusic" loop autoplay>
+        <source src="music.mp3" type="audio/mpeg">
+        আপনার ব্রাউজারে অডিও সাপোর্ট করে না।
+    </audio>
+
+    <!-- প্লে/পজ বাটন -->
+    <button id="music-btn">🎵 Play Music</button>
+
+    <canvas id="heartCanvas"></canvas>
+
+    <script>
+        const music = document.getElementById("bgMusic");
+        const musicBtn = document.getElementById("music-btn");
+
+        // ভলিউম সেট করা (০.০ থেকে ১.০) -> ০.৪ দিলে গানটি মৃদু ও মিষ্টি শোনাবে
+        music.volume = 0.4;
+
+        // মিউজিক টগল করার ফাংশন
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                musicBtn.innerText = "⏸ Pause Music";
+            } else {
+                music.pause();
+                musicBtn.innerText = "🎵 Play Music";
+            }
+        }
+
+        musicBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleMusic();
+        });
+
+        // ব্রাউজারের অটোপ্লে পলিসির কারণে স্ক্রিনে প্রথম টাচ/ক্লিক করলে গান চালু হবে
+        function startMusicOnFirstInteraction() {
+            if (music.paused) {
+                music.play().then(() => {
+                    musicBtn.innerText = "⏸ Pause Music";
+                }).catch(() => {
+                    // যদি ব্রাউজার ব্লক করে
+                });
+            }
+            window.removeEventListener("click", startMusicOnFirstInteraction);
+            window.removeEventListener("touchstart", startMusicOnFirstInteraction);
+        }
+
+        window.addEventListener("click", startMusicOnFirstInteraction);
+        window.addEventListener("touchstart", startMusicOnFirstInteraction);
+
+        // --- হার্ট অ্যানিমেশন কোড ---
+        const canvas = document.getElementById("heartCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let W, H, scale;
+        const TEXT = "Eva Moni";
+        const PINK = "255, 77, 109";
+        let points = [];
+        let startTime = Date.now();
+
+        function makePoint(x, y, target) {
+            return {
+                x: x,
+                y: y,
+                alpha: 0,
+                target: target,
+                delay: Math.random() * 7000
+            };
+        }
+
+        function resizeCanvas() {
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W;
+            canvas.height = H;
+
+            const minDim = Math.min(W, H);
+            scale = minDim / 42; 
+
+            init();
+        }
+
+        function createHeartPoints() {
+            let pts = [];
+            const cx = W / 2;
+            const cy = H / 2;
+
+            for (let i = 0; i < 180; i++) {
+                let t = (i / 180) * Math.PI * 2;
+                let x = 16 * Math.pow(Math.sin(t), 3);
+                let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                pts.push(makePoint(cx + x * scale, cy + y * scale, Math.random() * (255 - 180) + 180));
+            }
+
+            const innerScales = [0.2, 0.4, 0.6, 0.8];
+            for (let s of innerScales) {
+                for (let i = 0; i < 80; i++) {
+                    let t = (i / 80) * Math.PI * 2;
+                    let x = 16 * Math.pow(Math.sin(t), 3);
+                    let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                    pts.push(makePoint(cx + x * scale * s, cy + y * scale * s, Math.random() * (180 - 80) + 80));
+                }
+            }
+
+            return pts;
+        }
+
+        function init() {
+            points = createHeartPoints();
+            startTime = Date.now();
+        }
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "r" || e.key === "R") {
+                init();
+            }
+        });
+
+        window.addEventListener("resize", resizeCanvas);
+
+        function animate() {
+            let elapsed = Date.now() - startTime;
+
+            ctx.fillStyle = "rgb(5, 5, 5)";
+            ctx.fillRect(0, 0, W, H);
+
+            const fontSize = Math.max(10, Math.floor(Math.min(W, H) / 60));
+            ctx.font = `${fontSize}px Consolas`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            for (let p of points) {
+                if (elapsed > p.delay) {
+                    p.alpha += (p.target - p.alpha) * 0.004;
+                }
+
+                let alphaNormalized = p.alpha / 255;
+                if (alphaNormalized > 0) {
+                    ctx.fillStyle = `rgba(${PINK}, ${alphaNormalized})`;
+                    ctx.fillText(TEXT, p.x, p.y);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        resizeCanvas();
+        animate();
+    </script>
+</body>
+</html>
