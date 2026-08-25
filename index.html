@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heart Animation</title>
+    <title>Eva Moni Heart - Centered</title>
     <style>
         * {
             margin: 0;
@@ -13,13 +13,16 @@
         body {
             background-color: rgb(5, 5, 5);
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            justify-content: center; /* হরাইজন্টালি মাঝখানে */
+            align-items: center;    /* ভার্টিক্যালি মাঝখানে */
+            height: 100vh;           /* পুরো স্ক্রিন জুড় */
             overflow: hidden;
         }
         canvas {
             display: block;
+            /* মোবাইল ও ডেস্কটপে ক্যানভাস যাতে ছোট না হয় বা এক কোণায় না যায় */
+            max-width: 100%;
+            max-height: 100%;
         }
     </style>
 </head>
@@ -31,8 +34,9 @@
         const canvas = document.getElementById("heartCanvas");
         const ctx = canvas.getContext("2d");
 
-        const W = 800;
-        const H = 800;
+        // ক্যানভাস সাইজ সবসময় স্ক্রিনের উপর নির্ভর করবে
+        const W = Math.min(window.innerWidth, 800); // 800px অথবা স্ক্রিনের সাইজ, যেটি ছোট
+        const H = Math.min(window.innerHeight, 800);
         canvas.width = W;
         canvas.height = H;
 
@@ -55,7 +59,9 @@
             let pts = [];
             const cx = W / 2;
             const cy = H / 2;
-            const scale = Math.min(W, H) / 45;
+            
+            // মোবাইল স্ক্রিনের জন্য স্কেল অ্যাডজাস্ট করা হয়েছে যাতে হার্ট ফেটে না যায়
+            const scale = Math.min(W, H) / 50; 
 
             // Outer Boundary
             for (let i = 0; i < 180; i++) {
